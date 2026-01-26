@@ -10,10 +10,10 @@ void mqtt_client_init(void)
     ESP_LOGI(TAG, "MQTT_CLIENT init");
 }
 
-void mqtt_client_task(void *pvParameters)
+void mqtt_task(void *pvParameters)
 {
     while (1) {
         ESP_LOGI(TAG, "MQTT_CLIENT task running");
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        vTaskDelay(pdMS_TO_TICKS(3500));
     }
 }

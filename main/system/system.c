@@ -14,6 +14,6 @@ void system_task(void *pvParameters)
 {
     while (1) {
         ESP_LOGI(TAG, "SYSTEM task running");
-        vTaskDelay(pdMS_TO_TICKS(2000));
+        vTaskDelay(pdMS_TO_TICKS(3000));
     }
 }
