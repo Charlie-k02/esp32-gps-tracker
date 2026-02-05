@@ -1,3 +1,6 @@
+#include <stdint.h>   // pour uint8_t, int32_t, etc.
+#include <stddef.h>   // pour NULL
+#include <stdbool.h>  // pour bool, true, false
 #include "mqtt_client.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
@@ -5,15 +8,13 @@
 
 static const char *TAG = "MQTT_CLIENT";
 
-void mqtt_client_init(void)
-{
-    ESP_LOGI(TAG, "MQTT_CLIENT init");
+void mqtt_client_init(void) {
+	ESP_LOGI(TAG, "MQTT_CLIENT init");
 }
 
-void mqtt_task(void *pvParameters)
-{
-    while (1) {
-        ESP_LOGI(TAG, "MQTT_CLIENT task running");
-        vTaskDelay(pdMS_TO_TICKS(3500));
-    }
+void mqtt_task(void *pvParameters) {
+	while (1) {
+		ESP_LOGI(TAG, "MQTT_CLIENT task running");
+		vTaskDelay(pdMS_TO_TICKS(500));
+	}
 }
