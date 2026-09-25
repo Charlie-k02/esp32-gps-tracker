@@ -1,3 +1,4 @@
+
 /**
  * @file gps.c
  * @brief Driver applicatif GPS (NEO-6M) via UART + parsing NMEA minimal.
@@ -16,18 +17,30 @@
 #include <stdint.h>   // pour uint8_t, int32_t, etc.
 #include <stddef.h>   // pour NULL
 #include <stdbool.h>  // pour bool, true, false
-#include "gps.h"
+#include <string.h>
+
 #include "driver/uart.h"
 #include "esp_log.h"
+#include "esp_timer.h"
+
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
-#include <string.h>
+#include "freertos/semphr.h"
+
+#include "gps.h"
+#include "gps_utils.h"
+
+
+
 
 #define GPS_UART_NUM      UART_NUM_1
 #define GPS_TX_PIN        43 // GPIO ESP32 -> RX du GPS
 #define GPS_RX_PIN        44 // GPIO ESP32 <- TX du GPS
 #define GPS_BAUDRATE      9600 // Parfois 38400 en fonction du GPS
 #define GPS_BUF_SIZE      1024
+
+static gps_fix_t s_last_fix = {0};
+static SemaphoreHandle_t s_fix_mutex = NULL;
 
 static const char *TAG = "GPS";
 
@@ -51,6 +64,8 @@ void gps_init(void) {
 			UART_PIN_NO_CHANGE);
 
 	ESP_LOGI(TAG, "GPS UART initialized");
+	s_fix_mutex = xSemaphoreCreateMutex();
+
 }
 
 /**
@@ -142,15 +157,39 @@ static void parse_gprmc(const char *line)
 
     ESP_LOGI("GPS","Status=%s", status);
 
+	double lat_d = gps_apply_hemisphere(gps_nmea_to_decimal(lat, 0), ns[0]);
+	double lon_d = gps_apply_hemisphere(gps_nmea_to_decimal(lon, 1), ew[0]);
+	//double lat_d = apply_hemisphere(nmea_to_decimal(lat, 0), ns[0]);
+   // double lon_d = apply_hemisphere(nmea_to_decimal(lon, 1), ew[0]);
+
     if (status[0] == 'A') {
-        ESP_LOGI("GPS",
-                 "FIX OK -> Lat:%s %s Lon:%s %s",
-                 lat, ns, lon, ew);
+
+
+		if (s_fix_mutex && xSemaphoreTake(s_fix_mutex, pdMS_TO_TICKS(50)) == pdTRUE) {
+		            s_last_fix.valid = true;
+		            s_last_fix.lat = lat_d;
+		            s_last_fix.lon = lon_d;
+		            s_last_fix.timestamp_ms = esp_timer_get_time() / 1000;
+		            xSemaphoreGive(s_fix_mutex);
+		        }
+		ESP_LOGI(TAG, "FIX OK: lat=%.6f lon=%.6f", lat_d, lon_d);
+
+        //ESP_LOGI("GPS","FIX OK -> Lat:%s %s Lon:%s %s",lat, ns, lon, ew);
     }
     else {
         ESP_LOGW("GPS","Pas de fix GPS (status=%s)", status);
     }
 }
 
+gps_fix_t gps_get_last_fix(void)
+{
+    gps_fix_t copy = {0};
+
+    if (s_fix_mutex && xSemaphoreTake(s_fix_mutex, pdMS_TO_TICKS(50)) == pdTRUE) {
+        copy = s_last_fix;
+        xSemaphoreGive(s_fix_mutex);
+    }
+    return copy;
+}
 
 
