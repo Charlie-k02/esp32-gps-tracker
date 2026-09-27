@@ -2,16 +2,16 @@ idf_component_register(
     SRCS
         "main.c"
         "gps/gps.c"
-	"gps/gps_utils.c"
+        "gps/gps_utils.c"
         "mqtt/mqtt_client.c"
         "display/display.c"
         "system/system.c"
-	"wifi/wifi.c"
+        "wifi/wifi.c"
     INCLUDE_DIRS
         "."
         "gps"
         "mqtt"
         "display"
         "system"
-	"wifi"
+        "wifi"
 )
