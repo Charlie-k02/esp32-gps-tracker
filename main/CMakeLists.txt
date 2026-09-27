@@ -6,10 +6,12 @@ idf_component_register(
         "mqtt/mqtt_client.c"
         "display/display.c"
         "system/system.c"
+	"wifi/wifi.c"
     INCLUDE_DIRS
         "."
         "gps"
         "mqtt"
         "display"
         "system"
+	"wifi"
 )
